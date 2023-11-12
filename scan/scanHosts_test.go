@@ -94,3 +94,30 @@ func TestRunHostFound(t *testing.T) {
 		}
 	}
 }
+
+// Test when the host is not found
+func TestRunHostNotFound(t *testing.T) {
+	host := "389.389.389.389"
+	hl := &scan.HostsList{}
+
+	hl.Add(host)
+
+	res := scan.Run(hl, []int{})
+
+	// Verify the results of HostNotFound test
+	if len(res) != 1 {
+		t.Fatalf("Expected 1 result, got %d instead\n", len(res))
+	}
+
+	if res[0].Host != host {
+		t.Errorf("Expected host %q, got %q instead\n", host, res[0].Host)
+	}
+
+	if !res[0].NotFound {
+		t.Errorf("Expected host %q to NOT be found, but it was\n", host)
+	}
+
+	if len(res[0].PortStates) != 0 {
+		t.Errorf("Expected 0 port states, got %d instead\n", len(res[0].PortStates))
+	}
+}
