@@ -33,7 +33,7 @@ func TestRunHostFound(t *testing.T) {
 
 	// Testing against localhost
 	host := "localhost"
-	hl := scan.NewHostsList()
+	hl := &scan.HostsList{}
 
 	hl.Add(host)
 
