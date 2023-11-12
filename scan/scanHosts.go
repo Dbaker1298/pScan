@@ -44,3 +44,40 @@ func scanPort(host string, port int) PortState {
 
 	return p
 }
+
+// The scanPort function is private. We do not want users to call it directly.
+// Instead, we will create a public function that will call scanPort for each
+// port we want to scan.
+
+// Results represents the results of a port scan for a single host.
+type Results struct {
+	Host       string
+	NotFound   bool
+	PortStates []PortState
+}
+
+// Run perfoms a TCP scan on the hosts list
+func Run(hl *HostsList, ports []int) []Results {
+	res := make([]Results, 0, len(hl.Hosts))
+
+	for _, host := range hl.Hosts {
+		r := Results{Host: host}
+
+		// Use ne.LookupHost to resolve the hostname to an IP address.
+		// If the host is not found, set the NotFound property to true.
+		if _, err := net.LookupHost(host); err != nil {
+			r.NotFound = true
+			res = append(res, r)
+			continue
+		}
+
+		// If host was found, loop through the ports and call scanPort for each port.
+		for _, port := range ports {
+			r.PortStates = append(r.PortStates, scanPort(host, port))
+		}
+
+		res = append(res, r)
+	}
+
+	return res
+}
