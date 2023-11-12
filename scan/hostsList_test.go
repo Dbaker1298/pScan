@@ -2,6 +2,8 @@ package scan_test
 
 import (
 	"errors"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/Dbaker1298/pScan/scan"
@@ -104,5 +106,32 @@ func TestRemove(t *testing.T) {
 				t.Errorf("Host name %q should NOT be int list, but it is\n", tc.host)
 			}
 		})
+	}
+}
+
+func TestSaveLoad(t *testing.T) {
+	hl1 := scan.HostsList{}
+	hl2 := scan.HostsList{}
+
+	hostName := "host1"
+	hl1.Add(hostName)
+
+	tf, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("failed to create temp file: %s", err)
+	}
+
+	defer os.Remove(tf.Name())
+
+	if err := hl1.Save(tf.Name()); err != nil {
+		t.Fatalf("failed to save hosts list: %s", err)
+	}
+
+	if err := hl2.Load(tf.Name()); err != nil {
+		t.Fatalf("Error getting list from file: %s", err)
+	}
+
+	if hl1.Hosts[0] != hl2.Hosts[0] {
+		t.Errorf("Host %q should match %q host.\n", hl1.Hosts[0], hl2.Hosts[0])
 	}
 }
