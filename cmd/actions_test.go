@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -97,6 +99,65 @@ func TestHostActions(t *testing.T) {
 				t.Errorf("Expected output: %q, got: %q instead\n", tc.expectedOut, out.String())
 			}
 		})
+	}
+}
+
+func TestScanAction(t *testing.T) {
+	// Define hosts for scan action test
+	hosts := []string{"localhost", "unknownhostoutthere"}
+
+	// Setup can test
+	tf, cleanup := setup(t, hosts, true)
+	defer cleanup()
+
+	ports := []int{}
+
+	// Init port, 1 open, 1 closed
+	for i := 0; i < 2; i++ {
+		ln, err := net.Listen("tcp", net.JoinHostPort(hosts[0], "0"))
+		if err != nil {
+			t.Fatalf("Failed to listen on port: %v\n", err)
+		}
+
+		defer ln.Close()
+
+		_, portStr, err := net.SplitHostPort(ln.Addr().String())
+		if err != nil {
+			t.Fatalf("Failed to split host and port: %v\n", err)
+		}
+
+		portInt, err := strconv.Atoi(portStr)
+		if err != nil {
+			t.Fatalf("Failed to convert port string to int: %v\n", err)
+		}
+
+		ports = append(ports, portInt)
+
+		if i == 1 {
+			ln.Close()
+		}
+	}
+
+	// Define expected output for scan action
+	expectedout := fmt.Sprintln("localhost:")
+	expectedout += fmt.Sprintf("\t%d: open\n", ports[0])
+	expectedout += fmt.Sprintf("\t%d: closed\n", ports[1])
+	expectedout += fmt.Sprintln()
+	expectedout += fmt.Sprintln("unknownhostoutthere: Host not found")
+	expectedout += fmt.Sprintln()
+
+	// Define var to capture Action output
+
+	var out bytes.Buffer
+
+	// Execute Action and capture output
+	if err := scanAction(&out, tf, ports); err != nil {
+		t.Fatalf("Expected no error, got: %q\n", err)
+	}
+
+	// Test scan output
+	if out.String() != expectedout {
+		t.Errorf("Expected output: %q, got: %q instead\n", expectedout, out.String())
 	}
 }
 
