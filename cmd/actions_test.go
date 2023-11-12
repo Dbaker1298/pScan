@@ -189,8 +189,12 @@ func TestIntegration(t *testing.T) {
 	expectedOut += fmt.Sprintf("Deleted host: %s\n", delHost)
 	expectedOut += strings.Join(hostsEnd, "\n")
 	expectedOut += fmt.Sprintln()
+	for _, v := range hostsEnd {
+		expectedOut += fmt.Sprintf("%s: Host not found\n", v)
+		expectedOut += fmt.Sprintln()
+	}
 
-	// Execute all actions in the defined order; add -> list -> delete -> list
+	// Execute all actions in the defined order; add -> list -> delete -> list -> scan
 	// Add hosts to the list
 	if err := addAction(&out, tf, hosts); err != nil {
 		t.Fatalf("Expected no error, got: %q\n", err)
@@ -211,7 +215,12 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("Expected no error, got: %q\n", err)
 	}
 
-	// Compare output
+	// Scan hosts
+	if err := scanAction(&out, tf, nil); err != nil {
+		t.Fatalf("Expected no error, got: %q\n", err)
+	}
+
+	// Test integration output
 	if out.String() != expectedOut {
 		t.Errorf("Expected output: %q, got: %q instead\n", expectedOut, out.String())
 	}
