@@ -17,8 +17,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"fmt"
+	"io"
 	"os"
 
+	"github.com/Dbaker1298/pScan/scan"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +40,24 @@ var addCmd = &cobra.Command{
 
 		return addAction(os.Stdout, hostsFile, args)
 	},
+}
+
+func addAction(out io.Writer, hostsFile string, args []string) error {
+	hl := &scan.HostsList{}
+
+	if err := hl.Load(hostsFile); err != nil {
+		return err
+	}
+
+	for _, host := range args {
+		if err := hl.Add(host); err != nil {
+			return err
+		}
+
+		fmt.Fprintln(out, "Added host: ", host)
+	}
+
+	return hl.Save(hostsFile)
 }
 
 func init() {
