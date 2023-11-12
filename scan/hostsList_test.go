@@ -102,8 +102,8 @@ func TestRemove(t *testing.T) {
 				t.Errorf("Expected list length: %d, got: %d instead\n", tc.expectLen, len(hl.Hosts))
 			}
 
-			if hl.Hosts[0] != tc.host {
-				t.Errorf("Host name %q should NOT be int list, but it is\n", tc.host)
+			if hl.Hosts[0] == tc.host {
+				t.Errorf("Host name %q should NOT be in the list, but it is\n", tc.host)
 			}
 		})
 	}
