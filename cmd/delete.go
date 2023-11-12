@@ -21,8 +21,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/Dbaker1298/pScan/scan"
+	"github.com/spf13/cobra"
 )
 
 // deleteCmd represents the delete command
@@ -40,6 +40,24 @@ var deleteCmd = &cobra.Command{
 
 		return deleteAction(os.Stdout, hostsFile, args)
 	},
+}
+
+func deleteAction(out io.Writer, hostsFile string, args []string) error {
+	hl := &scan.HostsList{}
+
+	if err := hl.Load(hostsFile); err != nil {
+		return err
+	}
+
+	for _, host := range args {
+		if err := hl.Remove(host); err != nil {
+			return err
+		}
+
+		fmt.Fprintln(out, "Deleted host: ", host)
+	}
+
+	return hl.Save(hostsFile)
 }
 
 func init() {
