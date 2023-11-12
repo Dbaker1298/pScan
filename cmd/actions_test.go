@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/Dbaker1298/pScan/scan"
@@ -95,5 +97,61 @@ func TestHostActions(t *testing.T) {
 				t.Errorf("Expected output: %q, got: %q instead\n", tc.expectedOut, out.String())
 			}
 		})
+	}
+}
+
+// Let's now add an integration test. The goal is to execute all commands
+// in sequence, simulating a real user interaction. The user will add three
+// hosts, list them, delete a host, and list them again.
+func TestIntegration(t *testing.T) {
+	// Define hosts for integration test
+	hosts := []string{"host1", "host2", "host3"}
+
+	// Set up integration test
+	tf, cleanup := setup(t, hosts, false)
+	defer cleanup()
+
+	delHost := "host2"
+
+	hostsEnd := []string{"host1", "host3"}
+
+	// Define var to capture Action output
+	var out bytes.Buffer
+
+	// Define expected output for all actions
+	expectedOut := ""
+	for _, v := range hosts {
+		expectedOut += fmt.Sprintf("Added host: %s\n", v)
+	}
+	expectedOut += strings.Join(hosts, "\n")
+	expectedOut += fmt.Sprintln()
+	expectedOut += fmt.Sprintf("Deleted host: %s\n", delHost)
+	expectedOut += strings.Join(hostsEnd, "\n")
+	expectedOut += fmt.Sprintln()
+
+	// Execute all actions in the defined order; add -> list -> delete -> list
+	// Add hosts to the list
+	if err := addAction(&out, tf, hosts); err != nil {
+		t.Fatalf("Expected no error, got: %q\n", err)
+	}
+
+	// List hosts
+	if err := listAction(&out, tf, nil); err != nil {
+		t.Fatalf("Expected no error, got: %q\n", err)
+	}
+
+	// Delete host2
+	if err := deleteAction(&out, tf, []string{delHost}); err != nil {
+		t.Fatalf("Expected no error, got: %q\n", err)
+	}
+
+	// List hosts after deleting host2
+	if err := listAction(&out, tf, nil); err != nil {
+		t.Fatalf("Expected no error, got: %q\n", err)
+	}
+
+	// Compare output
+	if out.String() != expectedOut {
+		t.Errorf("Expected output: %q, got: %q instead\n", expectedOut, out.String())
 	}
 }
