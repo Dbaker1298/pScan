@@ -1,1 +1,3 @@
 # pScan
+
+See `./docs`
