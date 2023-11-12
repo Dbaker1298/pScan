@@ -54,7 +54,7 @@ func deleteAction(out io.Writer, hostsFile string, args []string) error {
 			return err
 		}
 
-		fmt.Fprintln(out, "Deleted host: ", host)
+		fmt.Fprintln(out, "Deleted host:", host)
 	}
 
 	return hl.Save(hostsFile)
